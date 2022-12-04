@@ -4,6 +4,8 @@ public abstract class ASolution
 {
     public IEnumerable<string> Input;
     public IEnumerable<int> InputAsInts => Input.Select(x => int.TryParse(x, out var value) ? value : int.MinValue);
+    public int Rows => Input.Count();
+    public int InputWidth => Input.First().Length;
 
     protected ASolution(bool testInput)
     {
