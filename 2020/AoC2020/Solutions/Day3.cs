@@ -8,41 +8,22 @@ public class Day3 : ASolution
 
     public override string A()
     {
-        var map = Input.ToCoordinateDictionary();
+        var map = Input.ToCoordinateDictionary(c => c == '#');
 
-        var x = 0;
-        var trees = 0;
-        for(var y = 1; y < Input.Count(); y++)
-        {
-            x += 3;
-            if (map[(x % Input.First().Length, y)] == '#')
-            {
-                trees++;
-            }
-        }
-        return trees.ToString();
+        return SequenceGenerator.GeneratePositions(Rows, 0, 0, 3, 1)
+            .Count(pos => map.ContainsKey((pos.x % InputWidth, pos.y)))
+            .ToString();
     }
 
     public override string B()
     {
-        var map = Input.ToCoordinateDictionary();
+        var map = Input.ToCoordinateDictionary(c => c == '#');
         var slopes = new (int x, int y)[] { (1, 1), (3, 1), (5, 1), (7, 1), (1, 2) };
 
-        long result = 1;
-        foreach(var slope in slopes)
-        {
-            var trees = 0;
-            var x = 0;
-            for(var y = slope.y; y < Input.Count(); y += slope.y)
-            {
-                x += slope.x;
-                if (map[(x % Input.First().Length, y)] == '#')
-                {
-                    trees++;
-                }
-            }
-            result *= trees;
-        }
-        return result.ToString();
+        return slopes
+            .Select(slope => SequenceGenerator.GeneratePositions(Rows, 0, 0, slope.x, slope.y))
+            .Select(positions => positions.Count(pos => map.ContainsKey((pos.x % InputWidth, pos.y))))
+            .Aggregate(1L, (total, next) => total *= next)
+            .ToString();
     }
 }
