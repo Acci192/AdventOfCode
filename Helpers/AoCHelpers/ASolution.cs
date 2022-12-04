@@ -19,7 +19,7 @@ public abstract class ASolution
 
     public IEnumerable<string> ReadInput(bool testInput = false)
     {
-        using var reader = new StreamReader(testInput ? $"TestInputs/{GetType().Name}.txt" : $"../../../Inputs/{GetType().Name}.txt");
+        using var reader = new StreamReader(testInput ? $"../../../TestInputs/{GetType().Name}.txt" : $"../../../Inputs/{GetType().Name}.txt");
         while (!reader.EndOfStream)
         {
             yield return reader.ReadLine() ?? string.Empty;
