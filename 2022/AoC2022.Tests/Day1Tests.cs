@@ -1,4 +1,4 @@
-using AoC2020.Solutions;
+using AoC2022.Solutions;
 using AoCHelpers;
 using FluentAssertions;
 
@@ -15,12 +15,12 @@ public class Day1Tests
     [Fact]
     public void A()
     {
-        Solution.A().Should().Be("514579");
+        Solution.A().Should().Be("24000");
     }
 
     [Fact]
     public void B()
     {
-        Solution.B().Should().Be("241861950");
+        Solution.B().Should().Be("45000");
     }
 }

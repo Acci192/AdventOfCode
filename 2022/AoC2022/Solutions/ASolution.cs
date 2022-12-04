@@ -1,11 +1,9 @@
-﻿//namespace AoC2020.Solutions;
+﻿//namespace aoc2022.solutions;
 
 //public abstract class ASolution
 //{
 //    public IEnumerable<string> Input;
 //    public IEnumerable<int> InputAsInts => Input.Select(x => int.TryParse(x, out var value) ? value : int.MinValue);
-//    public int Rows => Input.Count();
-//    public int InputWidth => Input.First().Length;
 
 //    protected ASolution(bool testInput)
 //    {
@@ -17,7 +15,7 @@
 
 //    public IEnumerable<string> ReadInput(bool testInput = false)
 //    {
-//        using var reader = new StreamReader(testInput ? $"../../../../AoC2020.Tests/TestInputs/{GetType().Name}.txt" : $"../../../Inputs/{GetType().Name}.txt");
+//        using var reader = new StreamReader(testInput ? $"../../../../SolutionTests/testinputs/{GetType().Name}.txt" : $"../../../inputs/{GetType().Name}.txt");
 //        while (!reader.EndOfStream)
 //        {
 //            yield return reader.ReadLine() ?? string.Empty;

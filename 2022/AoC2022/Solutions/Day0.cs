@@ -1,6 +1,6 @@
 ﻿using AoCHelpers;
 
-namespace AoC2020.Solutions;
+namespace AoC2022.Solutions;
 
 public class Day0 : ASolution
 {

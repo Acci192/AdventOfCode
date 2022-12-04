@@ -1,4 +1,6 @@
-﻿namespace AoC2020.Solutions;
+﻿using AoCHelpers;
+
+namespace AoC2020.Solutions;
 
 public class Day1 : ASolution
 {
