@@ -15,12 +15,12 @@ public class Day5Tests
     [Fact]
     public void A()
     {
-        Solution.A().Should().Be("");
+        Solution.A().Should().Be("CMZ");
     }
 
     [Fact]
     public void B()
     {
-        Solution.B().Should().Be("");
+        Solution.B().Should().Be("MCD");
     }
 }
