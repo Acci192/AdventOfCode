@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace AoCHelpers;
+﻿namespace AoCHelpers;
 
 public abstract class ASolution
 {
@@ -12,6 +10,11 @@ public abstract class ASolution
     protected ASolution(bool testInput)
     {
         Input = ReadInput(testInput);
+    }
+
+    protected ASolution(string input)
+    {
+       Input = input.Split(Environment.NewLine);
     }
 
     public abstract string A();
