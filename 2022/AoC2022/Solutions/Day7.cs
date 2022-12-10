@@ -1,6 +1,4 @@
 ﻿using AoCHelpers;
-using System.Drawing;
-using System.IO;
 
 namespace AoC2022.Solutions;
 
@@ -11,10 +9,7 @@ public class Day7 : ASolution
     public override string A()
     {
         var root = GetFileStructure(Input);
-
-        var sum = 0;
-        CountSmallDirectorySizes(root, ref sum );
-        return sum.ToString();
+        return CountSmallDirectorySizes(root, 100000).ToString();
     }
 
     public override string B()
@@ -27,37 +22,32 @@ public class Day7 : ASolution
         var currentFreeSpace = totalNeededDiskSpace - root.GetTotalSize();
         var diskSpaceToBeDeleted = neededFreeDiskSpace - currentFreeSpace;
 
-        var fileSizeToDelete = int.MaxValue;
-        return CalculateB(root, fileSizeToDelete, diskSpaceToBeDeleted).ToString();
+        return FindSmallestDirectoryToDelete(root, diskSpaceToBeDeleted).ToString();
     }
-    private int CalculateB(Directory directory, int fileSizeToDelete, int diskSpaceToBeDeleted)
+    private int FindSmallestDirectoryToDelete(Directory directory, int diskSpaceToBeDeleted)
     {
         var size = directory.GetTotalSize();
 
-        if(size > diskSpaceToBeDeleted)
+        if(size < diskSpaceToBeDeleted)
         {
-            fileSizeToDelete = Math.Min(size, fileSizeToDelete);
-        }
-        foreach (var dir in directory.Directorys)
-        {
-            fileSizeToDelete = Math.Min(fileSizeToDelete, CalculateB(dir, fileSizeToDelete, diskSpaceToBeDeleted));
+            return int.MaxValue;
         }
 
-        return fileSizeToDelete;
+        if(directory.Directorys.Count == 0)
+        {
+            return size;
+        }   
+
+        var smallestSubDirectoryToDelete = directory.Directorys.Select(x => FindSmallestDirectoryToDelete(x, diskSpaceToBeDeleted)).Min();
+
+        return Math.Min(size, smallestSubDirectoryToDelete);
     }
 
-    private void CountSmallDirectorySizes(Directory directory, ref int sum)
+    private int CountSmallDirectorySizes(Directory directory, int smallSize)
     {
-        var size = directory.GetTotalSize();
-        foreach(var dir in directory.Directorys)
-        {
-            CountSmallDirectorySizes(dir, ref sum);
-        }
-
-        if(size < 100000)
-        {
-            sum += size;
-        }
+        return directory.GetTotalSize() <= smallSize
+            ? directory.GetTotalSize() + directory.Directorys.Sum(x => CountSmallDirectorySizes(x, smallSize))
+            : directory.Directorys.Sum(x => CountSmallDirectorySizes(x, smallSize));
     }
 
     private static Directory GetFileStructure(IEnumerable<string> input)
