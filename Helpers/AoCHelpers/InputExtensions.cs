@@ -24,4 +24,14 @@ public static class InputExtensions
 
         return result;
     }
+
+    public static char[][] ToCharGrid(this IEnumerable<string> input)
+    {
+        return input.Select(x => x.ToArray()).ToArray();
+    }
+
+    public static T[][] ToGrid<T>(this IEnumerable<string> input, Func<char, T> selector)
+    {
+        return input.Select(x => x.Select(selector).ToArray()).ToArray();
+    }
 }

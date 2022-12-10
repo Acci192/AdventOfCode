@@ -9,166 +9,153 @@ public class Day8 : ASolution
 
     public override string A()
     {
-        var grid = Input.ToCoordinateDictionary();
+        var grid = Input.ToGrid(x => new Tree(x));
 
-        var sum = 0;
-        var width = InputWidth;
-        var height = Rows;
-
-        foreach(var position in grid)
+        for (var x = 0; x < grid[0].Length; x++)
         {
-            var (x, y) = position.Key;
-            if (x == 0 || y == 0 || x == InputWidth - 1 || y == InputWidth - 1)
+            for (var y = 0; y < grid.Length; y++)
             {
-                sum++;
-                continue;
-            }
-
-            var treesInTheWay = new List<char>();
-            for(var i = x - 1; i >= 0; i--)
-            {
-                treesInTheWay.Add(grid[(i, y)]);
-            }
-
-            if (treesInTheWay.TrueForAll(tree => tree < grid[(x, y)]))
-            {
-                sum++;
-                continue;
-            }
-
-            treesInTheWay = new List<char>();
-            for (var i = y - 1; i >= 0; i--)
-            {
-                treesInTheWay.Add(grid[(x, i)]);
-            }
-
-            if (treesInTheWay.TrueForAll(tree => tree < grid[(x, y)]))
-            {
-                sum++;
-                continue;
-            }
-
-            treesInTheWay = new List<char>();
-            for (var i = x + 1; i < InputWidth; i++)
-            {
-                treesInTheWay.Add(grid[(i, y)]);
-            }
-
-            if (treesInTheWay.TrueForAll(tree => tree < grid[(x, y)]))
-            {
-                sum++;
-                continue;
-            }
-
-            treesInTheWay = new List<char>();
-            for (var i = y + 1; i < InputWidth; i++)
-            {
-                treesInTheWay.Add(grid[(x, i)]);
-            }
-
-            if (treesInTheWay.TrueForAll(tree => tree < grid[(x, y)]))
-            {
-                sum++;
-                continue;
+                PropagateVisibility(x, y, grid);
+                PropagateVisibility(grid[0].Length - x - 1, grid.Length - y - 1, grid);
             }
         }
-        return sum.ToString();
+
+        return grid.SelectMany(x => x).Count(x => x.Visible).ToString();
     }
 
     public override string B()
     {
-        var grid = Input.ToCoordinateDictionary();
+        var grid = Input.ToGrid(x => new Tree(x));
 
-        var sum = 0;
-        foreach (var position in grid)
+        var biggestScenicScore = 0;
+        for (var x = 1; x < grid[0].Length -1; x++)
         {
-            var totalScore = 1;
-            var (x, y) = position.Key;
-            if (x == 0 || y == 0 || x == InputWidth - 1 || y == InputWidth - 1)
+            for (var y = 1; y < grid.Length - 1; y++)
             {
-                continue;
+                var test = CalculateScenicScore(x, y, grid);
+                biggestScenicScore = Math.Max(biggestScenicScore, test);
             }
-            
-            var treesInTheWay = new List<char>();
-            for (var i = x - 1; i >= 0; i--)
-            {
-                treesInTheWay.Add(grid[(i, y)]);
-            }
-
-            var blocked = false;
-            foreach (var (t, i) in treesInTheWay.Select((t, i) => (t, i)))
-            {
-                if (t >= grid[(x, y)])
-                {
-                    totalScore *= i + 1;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (!blocked)
-            {
-                totalScore *= treesInTheWay.Count;
-            }
-
-            treesInTheWay = new List<char>();
-            for (var i = y - 1; i >= 0; i--)
-            {
-                treesInTheWay.Add(grid[(x, i)]);
-            }
-            blocked = false;
-            foreach (var (t, i) in treesInTheWay.Select((t, i) => (t, i)))
-            {
-                if (t >= grid[(x, y)])
-                {
-                    totalScore *= i + 1;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (!blocked)
-            {
-                totalScore *= treesInTheWay.Count;
-            }
-            treesInTheWay = new List<char>();
-            for (var i = x + 1; i < InputWidth; i++)
-            {
-                treesInTheWay.Add(grid[(i, y)]);
-            }
-            blocked = false;
-            foreach (var (t, i) in treesInTheWay.Select((t, i) => (t, i)))
-            {
-                if (t >= grid[(x, y)])
-                {
-                    totalScore *= i+1;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (!blocked)
-            {
-                totalScore *= treesInTheWay.Count;
-            }
-            treesInTheWay = new List<char>();
-            for (var i = y + 1; i < InputWidth; i++)
-            {
-                treesInTheWay.Add(grid[(x, i)]);
-            }
-            blocked = false;
-            foreach (var (t, i) in treesInTheWay.Select((t, i) => (t, i)))
-            {
-                if (t >= grid[(x, y)])
-                {
-                    totalScore *= i + 1;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (!blocked)
-            {
-                totalScore *= treesInTheWay.Count;
-            }
-            sum = Math.Max(sum, totalScore);
         }
-        return sum.ToString();
+
+        return biggestScenicScore.ToString();
+    }
+
+    private static void PropagateVisibility(int x, int y, Tree[][] grid)
+    {
+        var tree = grid[y][x];
+
+        if (y > 0)
+        {
+            grid[y - 1][x].BlockedByFromSouth = Math.Max(tree.Height, tree.BlockedByFromSouth);
+        }
+
+        if (y < grid.Length - 1)
+        {
+            grid[y + 1][x].BlockedByFromNorth = Math.Max(tree.Height, tree.BlockedByFromNorth);
+        }
+
+        if (x > 0)
+        {
+            grid[y][x - 1].BlockedByFromEast = Math.Max(tree.Height, tree.BlockedByFromEast);
+        }
+
+        if (x < grid[0].Length - 1)
+        {
+            grid[y][x + 1].BlockedByFromWest = Math.Max(tree.Height, tree.BlockedByFromWest);
+        }
+    }
+
+    private static int CalculateScenicScore(int x, int y, Tree[][] grid)
+    {
+        var treesToNorth = 0;
+        var treesToSouth = 0;
+        var treesToEast = 0;
+        var treesToWest = 0;
+
+        var blockedToNorth = false;
+        var blockedToSouth = false;
+        var blockedToEast = false;
+        var blockedToWest = false;
+
+        var tree = grid[y][x];
+        for(var i = 1; i <= grid.Length; i++)
+        {
+            if(x - i >= 0 && !blockedToWest)
+            {
+                treesToWest++;
+                if (grid[y][x - i].Height >= tree.Height)
+                {
+                    blockedToWest = true;
+                }
+            }
+
+            if (x + i < grid.Length && !blockedToEast)
+            {
+                treesToEast++;
+                if (grid[y][x + i].Height >= tree.Height)
+                {
+                    blockedToEast = true;
+                }
+            }
+
+            if(y - i >= 0 && !blockedToNorth)
+            {
+                treesToNorth++;
+                if (grid[y - i][x].Height >= tree.Height)
+                {
+                    blockedToNorth = true;
+                }
+            }
+
+            if(y + i < grid.Length && !blockedToSouth)
+            {
+                treesToSouth++;
+                if (grid[y + i][x].Height >= tree.Height)
+                {
+                    blockedToSouth = true;
+                }
+            }
+
+            if(blockedToSouth && blockedToWest && blockedToNorth && blockedToEast)
+            {
+                break;
+            }
+        }
+
+        treesToNorth = Math.Max(treesToNorth, 1);
+        treesToSouth = Math.Max(treesToSouth, 1);
+        treesToEast = Math.Max(treesToEast, 1);
+        treesToWest = Math.Max(treesToWest, 1);
+
+        return treesToEast * treesToNorth * treesToSouth * treesToWest;
+    }
+
+    private class Tree
+    {
+        public int Height { get; set; }
+        public int BlockedByFromNorth { get; set; } = -1;
+        public int BlockedByFromSouth { get; set; } = -1;
+        public int BlockedByFromWest { get; set; } = -1;
+        public int BlockedByFromEast { get; set; } = -1;
+
+        public bool Visible => Height > BlockedByFromEast
+            || Height > BlockedByFromNorth
+            || Height > BlockedByFromSouth
+            || Height > BlockedByFromWest;
+
+        public bool Blocked => BlockedByFromNorth >= Height
+            && BlockedByFromSouth >= Height
+            && BlockedByFromWest >= Height
+            && BlockedByFromEast >= Height;
+
+        public Tree(char height)
+        {
+            Height = height - '0';
+        }
+
+        public override string? ToString()
+        {
+            return Height.ToString();
+        }
     }
 }
