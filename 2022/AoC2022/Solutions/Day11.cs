@@ -26,11 +26,12 @@ public class Day11 : ASolution
     {
         var monkeys = GenerateMonkeys(Input).ToList();
 
+        var commonDivisor = monkeys.Select(x => x.Divisor).Aggregate(1L, (last, next) => next * last);
         for (var i = 0; i < 10000; i++)
         {
             foreach (var monkey in monkeys)
             {
-                ExecuteMonkeyTurn(monkey, monkeys);
+                ExecuteMonkeyTurn(monkey, monkeys, commonDivisor);
             }
         }
 
@@ -38,7 +39,7 @@ public class Day11 : ASolution
         return (test[0].ActivityScore * test[1].ActivityScore).ToString();
     }
 
-    public void ExecuteMonkeyTurn(Monkey monkey, List<Monkey> monkeys)
+    public static void ExecuteMonkeyTurn(Monkey monkey, List<Monkey> monkeys)
     {
         var itemCount = monkey.Items.Count;
 
@@ -48,20 +49,36 @@ public class Day11 : ASolution
             var item = monkey.Items[0];
             monkey.Items.RemoveAt(0);
 
-            //item = monkey.Calcalte(item);
-            item = (monkey.ItemChangeFunc?.Invoke(item) ?? throw new Exception());
-            item = item / 3;
+            item = monkey.Calculate(item);
+
+            item /= 3;
             var target = monkey.ThrowTarget(item);
+
             monkeys[target].Items.Add(item);
         }
     }
 
-    public IEnumerable<Monkey> GenerateMonkeys(IEnumerable<string> input)
+    public static void ExecuteMonkeyTurn(Monkey monkey, List<Monkey> monkeys, long commonDivisor)
+    {
+        var itemCount = monkey.Items.Count;
+
+        for (var i = 0; i < itemCount; i++)
+        {
+            monkey.ActivityScore++;
+            var item = monkey.Items[0];
+            monkey.Items.RemoveAt(0);
+
+            item = monkey.Calculate(item, commonDivisor);
+
+            var target = monkey.ThrowTarget(item);
+
+            monkeys[target].Items.Add(item);
+        }
+    }
+
+    public static IEnumerable<Monkey> GenerateMonkeys(IEnumerable<string> input)
     {
         var monkey = new Monkey();
-        var divisable = 1L;
-        var trueTarget = 0;
-        var falseTarget = 0;
         foreach (var (row, i) in input.Select((r, i) => (r, i)))
         {
             switch (i % 7)
@@ -78,31 +95,18 @@ public class Day11 : ASolution
                     break;
                 case 2:
                     var arguments = row[19..].Split(' ');
-                    long? arg1 = long.TryParse(arguments[0], out var a1) ? a1 : null;
-                    long? arg2 = long.TryParse(arguments[2], out var a2) ? a2 : null;
-                    var operand = arguments[1];
-                    //monkey.a1 = arg1;
-                    //monkey.a2 = arg2;
-                    //monkey.operand = operand;
-                    monkey.ItemChangeFunc = ParseOperation(row);
+                    monkey.Argument1 = long.TryParse(arguments[0], out var a1) ? a1 : null;
+                    monkey.Argument2 = long.TryParse(arguments[2], out var a2) ? a2 : null;
+                    monkey.Operand = arguments[1];
                     break;
                 case 3:
-                    divisable = long.Parse(row.Split(' ').Last());
-                    monkey.testd = divisable;
+                    monkey.Divisor = long.Parse(row.Split(' ').Last());
                     break;
                 case 4:
-                    trueTarget = int.Parse(row.Split(' ').Last());
-                    monkey.test1 = trueTarget;
+                    monkey.Target1 = int.Parse(row.Split(' ').Last());
                     break;
                 case 5:
-                    falseTarget = int.Parse(row.Split(' ').Last());
-
-                    monkey.test2 = falseTarget;
-                    break;
-                case 6:
-
-
-                    monkey.ThrowTargetFunc = (x) => x % divisable == 0 ? trueTarget : falseTarget;
+                    monkey.Target2 = int.Parse(row.Split(' ').Last());
                     break;
             }
         }
@@ -110,58 +114,41 @@ public class Day11 : ASolution
         yield return monkey;
     }
 
-    public Func<long, long>? ParseOperation(string row)
-    {
-        var arguments = row[19..].Split(' ');
-        long? arg1 = long.TryParse(arguments[0], out var a1) ? a1 : null;
-        long? arg2 = long.TryParse(arguments[2], out var a2) ? a2 : null;
-        var operand = arguments[1];
-
-        return operand switch
-        {
-            "+" => (x) => (arg1 ?? x) + (arg2 ?? x),
-            "*" => (x) => (arg1 ?? x) * (arg2 ?? x),
-            _ => null,
-        };
-    }
-
     public class Monkey
     {
         public List<long> Items { get; set; } = new List<long>();
-        public Func<long, long>? ItemChangeFunc { get; set; }
-        public Func<int, long>? ThrowTargetFunc { get; set; }
 
-        public long testd { get; set; }
-        public int test1 { get; set; }
-        public int test2 { get; set; }
+        public long Divisor { get; set; }
+        public int Target1 { get; set; }
+        public int Target2 { get; set; }
 
 
-        public long? a1 { get; set; }
-        public long? a2 { get; set; }
-        public string operand { get; set; }
+        public long? Argument1 { get; set; }
+        public long? Argument2 { get; set; }
+        public string? Operand { get; set; }
         
         public long ActivityScore = 0;
-        public Monkey()
-        {
-
-        }
-        public Monkey(List<long> items, Func<long, long> itemChangeFunc, Func<int, long> throwTargetFunc)
-        {
-            Items = items;
-            ItemChangeFunc = itemChangeFunc;
-            ThrowTargetFunc = throwTargetFunc;
-        }
         public int ThrowTarget(long item)
         {
-            return item % testd == 0 ? test1 : test2;
+            return item % Divisor == 0 ? Target1 : Target2;
         }
 
-        public long Calcalte(long x)
+        public long Calculate(long x)
         {
-            return operand switch
+            return Operand switch
             {
-                "+" => (a1 ?? x) + (a2 ?? x),
-                "*" => (a1 ?? x) * (a2 ?? x),
+                "+" => (Argument1 ?? x) + (Argument2 ?? x),
+                "*" => (Argument1 ?? x) * (Argument2 ?? x),
+                _ => -1,
+            };
+        }
+
+        public long Calculate(long x, long commonDivisor)
+        {
+            return Operand switch
+            {
+                "+" => ((Argument1 ?? x) + (Argument2 ?? x)) % commonDivisor,
+                "*" => ((Argument1 ?? x) * (Argument2 ?? x )) % commonDivisor,
                 _ => -1,
             };
         }
