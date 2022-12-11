@@ -15,12 +15,12 @@ public class Day11Tests
     [Fact]
     public void A()
     {
-        Solution.A().Should().Be("");
+        Solution.A().Should().Be("10605");
     }
 
     [Fact]
     public void B()
     {
-        Solution.B().Should().Be("");
+        Solution.B().Should().Be("2713310158");
     }
 }
